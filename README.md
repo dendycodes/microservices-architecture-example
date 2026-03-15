@@ -223,7 +223,7 @@ Single-page application built with React 18 (JavaScript library for UIs), Refine
 | Page | Route | Description |
 |------|-------|-------------|
 | Login | `/login` | Player selection dropdown, JWT login |
-| Tournaments | `/tournaments` | Browse, filter, join, view details |
+| Tournaments | `/tournaments` | Browse, filter, join, create & join, view details |
 | My Tournaments | `/my-tournaments` | Player's joined tournaments |
 
 ### State Management
@@ -242,6 +242,7 @@ Single-page application built with React 18 (JavaScript library for UIs), Refine
 
 - Skeleton loaders, error alerts, empty states
 - Join confirmation dialog with success animation
+- Create & Join form dialog (game type, tournament type, entry fee) to find or create a tournament
 - Tournament details drawer with player list
 - Game type / tournament type filters with pagination
 - Responsive layout (collapsible sidebar, mobile drawers)
@@ -355,7 +356,7 @@ cd backend/tournament-service && npm test
 
 ## Assumptions
 
-1. Tournaments are auto-created when a player joins with criteria that don't match any open tournament with available slots.
+1. When a player joins, the system finds a matching open tournament or creates a new one if none exists.
 2. Default max players per tournament: 8.
 3. Duplicate joins prevented by database unique constraint on `(tournamentId, playerId)`.
 4. Users are hardcoded — login is simplified to player ID selection.

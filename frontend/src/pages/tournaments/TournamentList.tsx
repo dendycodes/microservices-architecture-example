@@ -5,6 +5,7 @@ import {
   Dialog, DialogContent, DialogActions, Drawer, List, ListItem,
   ListItemText, ListItemAvatar, Avatar, Divider,
   Snackbar, TablePagination, useMediaQuery, useTheme, IconButton, Tooltip, Zoom,
+  TextField,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -14,6 +15,7 @@ import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import LinearProgress from '@mui/material/LinearProgress';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store';
@@ -72,6 +74,12 @@ export function TournamentList() {
     open: false, message: '', severity: 'success',
   });
 
+  // Create & Join dialog state
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createGameType, setCreateGameType] = useState('');
+  const [createTournamentType, setCreateTournamentType] = useState('');
+  const [createEntryFee, setCreateEntryFee] = useState('');
+
   const { data: tournamentDetails, isLoading: detailsLoading } = useTournamentDetails(detailsId);
 
   // Auto-close success animation
@@ -85,6 +93,27 @@ export function TournamentList() {
   const handleJoinClick = (t: Tournament, e: React.MouseEvent): void => {
     e.stopPropagation();
     setConfirmTournament(t);
+  };
+
+  const handleCreateJoin = async (): Promise<void> => {
+    if (!createGameType || !createTournamentType || !createEntryFee) return;
+    try {
+      await joinMutation.mutateAsync({
+        playerId: selectedPlayerId,
+        gameType: createGameType,
+        tournamentType: createTournamentType,
+        entryFee: Number(createEntryFee),
+      });
+      setCreateOpen(false);
+      setCreateGameType('');
+      setCreateTournamentType('');
+      setCreateEntryFee('');
+      setShowSuccess(true);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to join';
+      setCreateOpen(false);
+      setSnackbar({ open: true, message, severity: 'error' });
+    }
   };
 
   const handleConfirmJoin = async (): Promise<void> => {
@@ -118,20 +147,20 @@ export function TournamentList() {
       </Box>
 
       {/* Filters Bar */}
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           spacing={2}
           alignItems={{ xs: 'stretch', sm: 'center' }}
         >
-          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 200 } }}>
             <InputLabel>Game Type</InputLabel>
             <Select value={selectedGameType} label="Game Type" onChange={(e) => { dispatch(setSelectedGameType(e.target.value)); setPage(1); }}>
               <MenuItem value="">All Games</MenuItem>
               {gameTypes.map((g) => <MenuItem key={g} value={g}>{capitalize(g)}</MenuItem>)}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 200 } }}>
             <InputLabel>Tournament Type</InputLabel>
             <Select value={selectedTournamentType} label="Tournament Type" onChange={(e) => { dispatch(setSelectedTournamentType(e.target.value)); setPage(1); }}>
               <MenuItem value="">All Types</MenuItem>
@@ -139,6 +168,16 @@ export function TournamentList() {
             </Select>
           </FormControl>
         </Stack>
+        <Box sx={{ ml: 'auto' }}>
+          <Button
+            variant="contained"
+            startIcon={<AddCircleOutlineIcon />}
+            onClick={() => setCreateOpen(true)}
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Create & Join
+          </Button>
+        </Box>
       </Paper>
 
       {/* Loading / Error / Empty */}
@@ -164,7 +203,8 @@ export function TournamentList() {
                   <TableCell>Entry Fee</TableCell>
                   <TableCell>Players</TableCell>
                   <TableCell>Status</TableCell>
-                  <TableCell sx={{ width: 140 }} />
+                  <TableCell sx={{ width: 90 }} />
+                  <TableCell sx={{ width: 40 }} />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -220,38 +260,38 @@ export function TournamentList() {
                           sx={{ borderRadius: '6px' }}
                         />
                       </TableCell>
-                      <TableCell>
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          <Tooltip title={btnTooltip}>
-                            <span>
-                              <Button
-                                size="small"
-                                variant={alreadyJoined ? 'outlined' : 'contained'}
-                                color={alreadyJoined ? 'success' : 'primary'}
-                                disabled={btnDisabled}
-                                onClick={(e) => handleJoinClick(t, e)}
-                                sx={{
-                                  minWidth: 'auto',
-                                  px: 2,
-                                  py: 0.5,
-                                  fontSize: '0.8rem',
-                                  borderRadius: 1.5,
-                                }}
-                              >
-                                {alreadyJoined ? 'Joined' : 'Join'}
-                              </Button>
-                            </span>
-                          </Tooltip>
-                          <Tooltip title="View details">
-                            <IconButton
+                      <TableCell align="center">
+                        <Tooltip title={btnTooltip}>
+                          <span>
+                            <Button
                               size="small"
-                              onClick={(e) => { e.stopPropagation(); setDetailsId(t.id); }}
-                              sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
+                              variant={alreadyJoined ? 'outlined' : 'contained'}
+                              color={alreadyJoined ? 'success' : 'primary'}
+                              disabled={btnDisabled}
+                              onClick={(e) => handleJoinClick(t, e)}
+                              sx={{
+                                minWidth: 'auto',
+                                px: 2,
+                                py: 0.5,
+                                fontSize: '0.8rem',
+                                borderRadius: 1.5,
+                              }}
                             >
-                              <InfoOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
+                              {alreadyJoined ? 'Joined' : 'Join'}
+                            </Button>
+                          </span>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Tooltip title="View details">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => { e.stopPropagation(); setDetailsId(t.id); }}
+                            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
+                          >
+                            <InfoOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   );
@@ -348,6 +388,68 @@ export function TournamentList() {
             </DialogActions>
           </>
         )}
+      </Dialog>
+
+      {/* Create & Join Dialog */}
+      <Dialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        PaperProps={{ sx: { borderRadius: 2.5, overflow: 'hidden', width: 380, maxWidth: '92vw' } }}
+      >
+        <Box sx={{ px: 2.5, py: 1.5, bgcolor: '#f8fafc', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            Create & Join Tournament
+          </Typography>
+          <IconButton size="small" onClick={() => setCreateOpen(false)} sx={{ color: 'text.disabled', p: 0.5 }}>
+            <CloseIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Box>
+        <DialogContent sx={{ px: 2.5, py: 2.5 }}>
+          <Stack spacing={2}>
+            {/* Player (read-only) */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, bgcolor: '#f8fafc', borderRadius: 1.5 }}>
+              <PersonOutlineIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
+              <Typography variant="caption" color="text.secondary">Player</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 600, ml: 'auto' }}>{authUser?.name || selectedPlayerId}</Typography>
+            </Box>
+            <FormControl fullWidth size="small" required>
+              <InputLabel>Game Type</InputLabel>
+              <Select value={createGameType} label="Game Type" onChange={(e) => setCreateGameType(e.target.value)}>
+                {gameTypes.map((g) => <MenuItem key={g} value={g}>{capitalize(g)}</MenuItem>)}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth size="small" required>
+              <InputLabel>Tournament Type</InputLabel>
+              <Select value={createTournamentType} label="Tournament Type" onChange={(e) => setCreateTournamentType(e.target.value)}>
+                {tournamentTypes.map((t) => <MenuItem key={t} value={t}>{capitalize(t)}</MenuItem>)}
+              </Select>
+            </FormControl>
+            <TextField
+              label="Entry Fee"
+              type="number"
+              size="small"
+              value={createEntryFee}
+              onChange={(e) => setCreateEntryFee(e.target.value)}
+              required
+              fullWidth
+              inputProps={{ min: 0, step: 1 }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2, pt: 0, gap: 1 }}>
+          <Button onClick={() => setCreateOpen(false)} size="small" sx={{ flex: 1, color: 'text.secondary', fontSize: '0.78rem' }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={handleCreateJoin}
+            disabled={!createGameType || !createTournamentType || !createEntryFee || joinMutation.isLoading}
+            sx={{ flex: 1.4, fontSize: '0.78rem', py: 0.7 }}
+          >
+            {joinMutation.isLoading ? 'Joining...' : 'Create & Join'}
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* Success Dialog */}
