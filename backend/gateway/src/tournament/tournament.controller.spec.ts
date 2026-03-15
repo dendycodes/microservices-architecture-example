@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TournamentController } from './tournament.controller';
 import { TournamentService } from './tournament.service';
-import { JoinTournamentDto } from './dto/join-tournament.dto';
+import { JoinTournamentDto, GameType, TournamentType } from './dto/join-tournament.dto';
 import { AuthenticatedRequest } from '../types';
 
 describe('TournamentController', () => {
@@ -35,7 +35,7 @@ describe('TournamentController', () => {
 
   describe('joinTournament', () => {
     it('should call service with body playerId', async () => {
-      const dto: JoinTournamentDto = { playerId: 'player-1', gameType: 'chess', tournamentType: 'daily', entryFee: 10 };
+      const dto: JoinTournamentDto = { playerId: 'player-1', gameType: GameType.CHESS, tournamentType: TournamentType.DAILY, entryFee: 10 };
       const mockReq = { user: { playerId: 'player-1', name: 'Alice' } } as AuthenticatedRequest;
       mockTournamentService.joinTournament.mockResolvedValue({ success: true });
 
@@ -45,7 +45,7 @@ describe('TournamentController', () => {
     });
 
     it('should derive playerId from JWT when not in body', async () => {
-      const dto = { gameType: 'chess', tournamentType: 'daily', entryFee: 10 } as JoinTournamentDto;
+      const dto = { gameType: GameType.CHESS, tournamentType: TournamentType.DAILY, entryFee: 10 } as JoinTournamentDto;
       const mockReq = { user: { playerId: 'player-2', name: 'Bob' } } as AuthenticatedRequest;
       mockTournamentService.joinTournament.mockResolvedValue({ success: true });
 
@@ -58,7 +58,7 @@ describe('TournamentController', () => {
 
   describe('getTournaments', () => {
     it('should return paginated tournaments', async () => {
-      const mockData = { data: [{ id: '1', gameType: 'chess' }], total: 1, page: 1, limit: 10, totalPages: 1 };
+      const mockData = { data: [{ id: '1', gameType: GameType.CHESS }], total: 1, page: 1, limit: 10, totalPages: 1 };
       mockTournamentService.getTournaments.mockResolvedValue(mockData);
 
       const result = await controller.getTournaments(undefined, undefined, undefined, undefined);
@@ -68,8 +68,8 @@ describe('TournamentController', () => {
     it('should pass filters to service', async () => {
       await controller.getTournaments('chess', 'daily', undefined, undefined);
       expect(mockTournamentService.getTournaments).toHaveBeenCalledWith({
-        gameType: 'chess',
-        tournamentType: 'daily',
+        gameType: GameType.CHESS,
+        tournamentType: TournamentType.DAILY,
       });
     });
   });
@@ -94,7 +94,7 @@ describe('TournamentController', () => {
 
   describe('getTournamentDetails', () => {
     it('should return tournament details', async () => {
-      const mock = { id: 'uuid-1', gameType: 'chess', players: [] };
+      const mock = { id: 'uuid-1', gameType: GameType.CHESS, players: [] };
       mockTournamentService.getTournamentDetails.mockResolvedValue(mock);
 
       const result = await controller.getTournamentDetails('uuid-1');

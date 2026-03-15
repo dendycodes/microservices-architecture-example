@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { Tournament } from './entities/tournament.entity';
 import { TournamentPlayer } from './entities/tournament-player.entity';
+import { GameType, TournamentType, TournamentStatus } from './types/enums';
 
 const dataSource = new DataSource({
   type: 'postgres',
@@ -28,16 +29,16 @@ async function seed(): Promise<void> {
   }
 
   const tournaments = await tournamentRepo.save([
-    { gameType: 'chess', tournamentType: 'daily', entryFee: 10, status: 'open', maxPlayers: 8 },
-    { gameType: 'chess', tournamentType: 'weekly', entryFee: 50, status: 'open', maxPlayers: 16 },
-    { gameType: 'chess', tournamentType: 'monthly', entryFee: 100, status: 'open', maxPlayers: 32 },
-    { gameType: 'poker', tournamentType: 'daily', entryFee: 20, status: 'open', maxPlayers: 8 },
-    { gameType: 'poker', tournamentType: 'weekly', entryFee: 100, status: 'open', maxPlayers: 16 },
-    { gameType: 'backgammon', tournamentType: 'daily', entryFee: 5, status: 'open', maxPlayers: 8 },
-    { gameType: 'backgammon', tournamentType: 'weekly', entryFee: 25, status: 'open', maxPlayers: 12 },
-    { gameType: 'go', tournamentType: 'daily', entryFee: 15, status: 'open', maxPlayers: 8 },
-    { gameType: 'go', tournamentType: 'monthly', entryFee: 200, status: 'open', maxPlayers: 64 },
-    { gameType: 'chess', tournamentType: 'daily', entryFee: 10, status: 'open', maxPlayers: 2 },
+    { gameType: GameType.CHESS, tournamentType: TournamentType.DAILY, entryFee: 10, status: TournamentStatus.OPEN, maxPlayers: 8 },
+    { gameType: GameType.CHESS, tournamentType: TournamentType.WEEKLY, entryFee: 50, status: TournamentStatus.OPEN, maxPlayers: 16 },
+    { gameType: GameType.CHESS, tournamentType: TournamentType.MONTHLY, entryFee: 100, status: TournamentStatus.OPEN, maxPlayers: 32 },
+    { gameType: GameType.POKER, tournamentType: TournamentType.DAILY, entryFee: 20, status: TournamentStatus.OPEN, maxPlayers: 8 },
+    { gameType: GameType.POKER, tournamentType: TournamentType.WEEKLY, entryFee: 100, status: TournamentStatus.OPEN, maxPlayers: 16 },
+    { gameType: GameType.BACKGAMMON, tournamentType: TournamentType.DAILY, entryFee: 5, status: TournamentStatus.OPEN, maxPlayers: 8 },
+    { gameType: GameType.BACKGAMMON, tournamentType: TournamentType.WEEKLY, entryFee: 25, status: TournamentStatus.OPEN, maxPlayers: 12 },
+    { gameType: GameType.GO, tournamentType: TournamentType.DAILY, entryFee: 15, status: TournamentStatus.OPEN, maxPlayers: 8 },
+    { gameType: GameType.GO, tournamentType: TournamentType.MONTHLY, entryFee: 200, status: TournamentStatus.OPEN, maxPlayers: 64 },
+    { gameType: GameType.CHESS, tournamentType: TournamentType.DAILY, entryFee: 10, status: TournamentStatus.OPEN, maxPlayers: 2 },
   ]);
 
   console.log(`Created ${tournaments.length} tournaments`);
@@ -66,7 +67,7 @@ async function seed(): Promise<void> {
   for (const tournament of tournaments) {
     const count = await playerRepo.count({ where: { tournamentId: tournament.id } });
     if (count >= tournament.maxPlayers) {
-      tournament.status = 'full';
+      (tournament as Tournament).status = TournamentStatus.FULL;
       await tournamentRepo.save(tournament);
       console.log(`Tournament ${tournament.gameType}/${tournament.tournamentType} marked as full (${count}/${tournament.maxPlayers})`);
     }

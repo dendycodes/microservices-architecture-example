@@ -24,21 +24,21 @@ import { useTournaments } from '../../hooks/useTournaments';
 import { useMyTournaments } from '../../hooks/useMyTournaments';
 import { useJoinTournament } from '../../hooks/useJoinTournament';
 import { useTournamentDetails } from '../../hooks/useTournamentDetails';
-import { SnackbarState, Tournament } from '../../types';
+import { SnackbarState, Tournament, GameType, TournamentType, TournamentStatus } from '../../types';
 import { TableSkeleton } from '../../components/TableSkeleton';
 import { DetailsSkeleton } from '../../components/DetailsSkeleton';
 
-const gameTypes = ['chess', 'poker', 'backgammon', 'go'];
-const tournamentTypes = ['daily', 'weekly', 'monthly'];
+const gameTypes = Object.values(GameType);
+const tournamentTypes = Object.values(TournamentType);
 
 const capitalize = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
-const statusColor = (status: string): 'success' | 'warning' | 'error' | 'default' => {
+const statusColor = (status: TournamentStatus): 'success' | 'warning' | 'error' | 'default' => {
   switch (status) {
-    case 'open': return 'success';
-    case 'full': return 'warning';
-    case 'in_progress': return 'warning';
-    case 'completed': return 'error';
+    case TournamentStatus.OPEN: return 'success';
+    case TournamentStatus.FULL: return 'warning';
+    case TournamentStatus.IN_PROGRESS: return 'warning';
+    case TournamentStatus.COMPLETED: return 'error';
     default: return 'default';
   }
 };
@@ -76,9 +76,9 @@ export function TournamentList() {
 
   // Create & Join dialog state
   const [createOpen, setCreateOpen] = useState(false);
-  const [createGameType, setCreateGameType] = useState('');
-  const [createTournamentType, setCreateTournamentType] = useState('');
-  const [createEntryFee, setCreateEntryFee] = useState('');
+  const [createGameType, setCreateGameType] = useState<GameType | ''>('');
+  const [createTournamentType, setCreateTournamentType] = useState<TournamentType | ''>('');
+  const [createEntryFee, setCreateEntryFee] = useState(0);
 
   const { data: tournamentDetails, isLoading: detailsLoading } = useTournamentDetails(detailsId);
 
@@ -96,18 +96,18 @@ export function TournamentList() {
   };
 
   const handleCreateJoin = async (): Promise<void> => {
-    if (!createGameType || !createTournamentType || !createEntryFee) return;
+    if (!createGameType || !createTournamentType) return;
     try {
       await joinMutation.mutateAsync({
         playerId: selectedPlayerId,
         gameType: createGameType,
         tournamentType: createTournamentType,
-        entryFee: Number(createEntryFee),
+        entryFee: createEntryFee,
       });
       setCreateOpen(false);
       setCreateGameType('');
       setCreateTournamentType('');
-      setCreateEntryFee('');
+      setCreateEntryFee(0);
       setShowSuccess(true);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to join';
@@ -210,12 +210,12 @@ export function TournamentList() {
               <TableBody>
                 {data.data.map((t) => {
                   const alreadyJoined = joinedIds.has(t.id);
-                  const isFull = t.status !== 'open' || t.playersCount >= t.maxPlayers;
+                  const isFull = t.status !== TournamentStatus.OPEN || t.playersCount >= t.maxPlayers;
                   const btnDisabled = alreadyJoined || isFull;
                   const btnTooltip = alreadyJoined
                     ? 'You have already joined this tournament'
                     : isFull
-                      ? (t.status !== 'open' ? 'Tournament is not open' : 'Tournament is full')
+                      ? (t.status !== TournamentStatus.OPEN ? 'Tournament is not open' : 'Tournament is full')
                       : 'Join this tournament';
                   return (
                     <TableRow
@@ -414,13 +414,13 @@ export function TournamentList() {
             </Box>
             <FormControl fullWidth size="small" required>
               <InputLabel>Game Type</InputLabel>
-              <Select value={createGameType} label="Game Type" onChange={(e) => setCreateGameType(e.target.value)}>
+              <Select value={createGameType} label="Game Type" onChange={(e) => setCreateGameType(e.target.value as GameType)}>
                 {gameTypes.map((g) => <MenuItem key={g} value={g}>{capitalize(g)}</MenuItem>)}
               </Select>
             </FormControl>
             <FormControl fullWidth size="small" required>
               <InputLabel>Tournament Type</InputLabel>
-              <Select value={createTournamentType} label="Tournament Type" onChange={(e) => setCreateTournamentType(e.target.value)}>
+              <Select value={createTournamentType} label="Tournament Type" onChange={(e) => setCreateTournamentType(e.target.value as TournamentType)}>
                 {tournamentTypes.map((t) => <MenuItem key={t} value={t}>{capitalize(t)}</MenuItem>)}
               </Select>
             </FormControl>
@@ -429,7 +429,7 @@ export function TournamentList() {
               type="number"
               size="small"
               value={createEntryFee}
-              onChange={(e) => setCreateEntryFee(e.target.value)}
+              onChange={(e) => setCreateEntryFee(Number(e.target.value))}
               required
               fullWidth
               inputProps={{ min: 0, step: 1 }}
@@ -444,7 +444,7 @@ export function TournamentList() {
             variant="contained"
             size="small"
             onClick={handleCreateJoin}
-            disabled={!createGameType || !createTournamentType || !createEntryFee || joinMutation.isLoading}
+            disabled={!createGameType || !createTournamentType || joinMutation.isLoading}
             sx={{ flex: 1.4, fontSize: '0.78rem', py: 0.7 }}
           >
             {joinMutation.isLoading ? 'Joining...' : 'Create & Join'}

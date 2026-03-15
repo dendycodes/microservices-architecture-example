@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { TournamentService } from './tournament.service';
 import { Tournament } from '../entities/tournament.entity';
 import { TournamentPlayer } from '../entities/tournament-player.entity';
-import { JoinTournamentData } from '../types';
+import { JoinTournamentData, GameType, TournamentType } from '../types';
 
 describe('TournamentService', () => {
   let service: TournamentService;
@@ -51,7 +51,7 @@ describe('TournamentService', () => {
   });
 
   describe('joinTournament', () => {
-    const joinData: JoinTournamentData = { playerId: 'player-1', gameType: 'chess', tournamentType: 'daily', entryFee: 10 };
+    const joinData: JoinTournamentData = { playerId: 'player-1', gameType: GameType.CHESS, tournamentType: TournamentType.DAILY, entryFee: 10 };
 
     it('should return error if user not found', async () => {
       mockNatsClient.send.mockReturnValue(of({ success: false }));
@@ -91,7 +91,7 @@ describe('TournamentService', () => {
     it('should join existing tournament', async () => {
       mockNatsClient.send.mockReturnValue(of({ success: true, user: { id: 'player-1' } }));
 
-      const existingTournament = { id: 'existing-uuid', gameType: 'chess' };
+      const existingTournament = { id: 'existing-uuid', gameType: GameType.CHESS };
       const qb = {
         leftJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
@@ -114,7 +114,7 @@ describe('TournamentService', () => {
     it('should prevent duplicate joins', async () => {
       mockNatsClient.send.mockReturnValue(of({ success: true, user: { id: 'player-1' } }));
 
-      const existingTournament = { id: 'existing-uuid', gameType: 'chess' };
+      const existingTournament = { id: 'existing-uuid', gameType: GameType.CHESS };
       const qb = {
         leftJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
@@ -134,7 +134,7 @@ describe('TournamentService', () => {
 
   describe('getTournamentDetails', () => {
     it('should return tournament with players', async () => {
-      const tournament = { id: 'uuid-1', gameType: 'chess', players: [] };
+      const tournament = { id: 'uuid-1', gameType: GameType.CHESS, players: [] };
       mockTournamentRepo.findOne.mockResolvedValue(tournament);
 
       const result = await service.getTournamentDetails('uuid-1');
@@ -152,8 +152,8 @@ describe('TournamentService', () => {
   describe('getMyTournaments', () => {
     it('should return tournaments for player', async () => {
       const entries = [
-        { tournament: { id: '1', gameType: 'chess' } },
-        { tournament: { id: '2', gameType: 'poker' } },
+        { tournament: { id: '1', gameType: GameType.CHESS } },
+        { tournament: { id: '2', gameType: GameType.POKER } },
       ];
       mockPlayerRepo.find.mockResolvedValue(entries);
 

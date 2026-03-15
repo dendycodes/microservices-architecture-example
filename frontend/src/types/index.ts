@@ -1,9 +1,29 @@
+export enum GameType {
+  CHESS = 'chess',
+  POKER = 'poker',
+  BACKGAMMON = 'backgammon',
+  GO = 'go',
+}
+
+export enum TournamentType {
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly',
+}
+
+export enum TournamentStatus {
+  OPEN = 'open',
+  FULL = 'full',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+}
+
 export interface Tournament {
   id: string;
-  gameType: string;
-  tournamentType: string;
+  gameType: GameType;
+  tournamentType: TournamentType;
   entryFee: number;
-  status: string;
+  status: TournamentStatus;
   maxPlayers: number;
   playersCount: number;
   createdAt: string;
@@ -25,10 +45,10 @@ export interface TournamentPlayer {
 
 export interface TournamentDetails {
   id: string;
-  gameType: string;
-  tournamentType: string;
+  gameType: GameType;
+  tournamentType: TournamentType;
   entryFee: number;
-  status: string;
+  status: TournamentStatus;
   maxPlayers: number;
   createdAt: string;
   players: TournamentPlayer[];
@@ -36,8 +56,8 @@ export interface TournamentDetails {
 
 export interface JoinTournamentPayload {
   playerId: string;
-  gameType: string;
-  tournamentType: string;
+  gameType: GameType;
+  tournamentType: TournamentType;
   entryFee: number;
 }
 

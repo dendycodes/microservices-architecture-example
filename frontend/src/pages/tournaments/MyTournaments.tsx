@@ -6,15 +6,17 @@ import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { useMyTournaments } from '../../hooks/useMyTournaments';
+import { TournamentStatus } from '../../types';
 import { TableSkeleton } from '../../components/TableSkeleton';
 
 const capitalize = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
-const statusColor = (status: string): 'success' | 'warning' | 'error' | 'default' => {
+const statusColor = (status: TournamentStatus): 'success' | 'warning' | 'error' | 'default' => {
   switch (status) {
-    case 'open': return 'success';
-    case 'in_progress': return 'warning';
-    case 'completed': return 'error';
+    case TournamentStatus.OPEN: return 'success';
+    case TournamentStatus.FULL: return 'warning';
+    case TournamentStatus.IN_PROGRESS: return 'warning';
+    case TournamentStatus.COMPLETED: return 'error';
     default: return 'default';
   }
 };

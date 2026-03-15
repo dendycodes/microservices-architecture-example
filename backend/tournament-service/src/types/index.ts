@@ -1,23 +1,26 @@
+export { GameType, TournamentType, TournamentStatus } from './enums';
+import { GameType, TournamentType, TournamentStatus } from './enums';
+
 export interface JoinTournamentData {
   playerId: string;
-  gameType: string;
-  tournamentType: string;
+  gameType: GameType;
+  tournamentType: TournamentType;
   entryFee: number;
 }
 
 export interface TournamentFilters {
-  gameType?: string;
-  tournamentType?: string;
+  gameType?: GameType;
+  tournamentType?: TournamentType;
   page?: string;
   limit?: string;
 }
 
 export interface TournamentListItem {
   id: string;
-  gameType: string;
-  tournamentType: string;
+  gameType: GameType;
+  tournamentType: TournamentType;
   entryFee: number;
-  status: string;
+  status: TournamentStatus;
   maxPlayers: number;
   createdAt: Date;
   playersCount: number;

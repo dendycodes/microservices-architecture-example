@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
 import { TournamentPlayer } from './tournament-player.entity';
+import { GameType, TournamentType, TournamentStatus } from '../types/enums';
 
 @Entity('tournaments')
 export class Tournament {
@@ -7,16 +8,16 @@ export class Tournament {
   id!: string;
 
   @Column()
-  gameType!: string;
+  gameType!: GameType;
 
   @Column()
-  tournamentType!: string;
+  tournamentType!: TournamentType;
 
   @Column('decimal', { precision: 10, scale: 2 })
   entryFee!: number;
 
-  @Column({ default: 'open' })
-  status!: string;
+  @Column({ default: TournamentStatus.OPEN })
+  status!: TournamentStatus;
 
   @Column({ default: 8 })
   maxPlayers!: number;

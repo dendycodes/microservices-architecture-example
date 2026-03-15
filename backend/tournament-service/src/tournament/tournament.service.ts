@@ -13,6 +13,7 @@ import {
   ServiceErrorResult,
   UserServiceResponse,
   AuthResult,
+  TournamentStatus,
 } from '../types';
 
 @Injectable()
@@ -44,7 +45,7 @@ export class TournamentService implements OnModuleInit {
         .where('t.gameType = :gameType', { gameType: data.gameType })
         .andWhere('t.tournamentType = :tournamentType', { tournamentType: data.tournamentType })
         .andWhere('t.entryFee = :entryFee', { entryFee: data.entryFee })
-        .andWhere('t.status = :status', { status: 'open' })
+        .andWhere('t.status = :status', { status: TournamentStatus.OPEN })
         .groupBy('t.id')
         .having('COUNT(p.id) < t."maxPlayers"')
         .getOne();
@@ -73,8 +74,8 @@ export class TournamentService implements OnModuleInit {
 
       const playersCount = await this.playerRepo.count({ where: { tournamentId: tournament.id } });
 
-      if (playersCount >= tournament.maxPlayers && tournament.status === 'open') {
-        tournament.status = 'full';
+      if (playersCount >= tournament.maxPlayers && tournament.status === TournamentStatus.OPEN) {
+        tournament.status = TournamentStatus.FULL;
         await this.tournamentRepo.save(tournament);
       }
 
@@ -110,8 +111,8 @@ export class TournamentService implements OnModuleInit {
         data: tournaments.map((t) => {
           const playersCount = t.players?.length || 0;
           let status = t.status;
-          if (status === 'open' && playersCount >= t.maxPlayers) {
-            status = 'full';
+          if (status === TournamentStatus.OPEN && playersCount >= t.maxPlayers) {
+            status = TournamentStatus.FULL;
           }
           return {
             id: t.id,
